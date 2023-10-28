@@ -28,9 +28,9 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
     if (!acc[requestorId]) {
       acc[requestorId] = [];
     }
-    acc[requestorId].push(gift);
+    acc[requestorId]?.push(gift);
     return acc;
-  }, {}) as GiftGroup;
+  }, {} as GiftGroup);
 
   const UserProfile: FC<{ userId: string }> = ({ userId }) => {
     const user = exchange.participants.find(p => p.id === userId);
@@ -59,7 +59,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
       includePurchasers: true,
     });
     return (
-      <div className="bg-base-300 p-4 rounded-lg flex flex-wrap">
+      <div className="bg-base-300 p-4 rounded-lg flex flex-wrap gap-2">
         {purchase?.purchasers.map(purchaser => (
           <div key={purchaser.id} className="badge badge-outline gap-2">
             <div className="avatar">
