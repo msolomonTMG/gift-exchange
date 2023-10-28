@@ -10,7 +10,7 @@ type Props = {
 export const EditGift: FC<Props> = ({ gift, onGiftEdited }) => {
   return (
     <>
-      <button className="btn" onClick={()=>(document.getElementById(`edit_gift_${gift.id}_modal`) as HTMLDialogElement).showModal()}>
+      <button className="btn btn-sm" onClick={()=>(document.getElementById(`edit_gift_${gift.id}_modal`) as HTMLDialogElement).showModal()}>
         Edit
       </button>
       <dialog id={`edit_gift_${gift.id}_modal`} className="modal">
@@ -19,7 +19,7 @@ export const EditGift: FC<Props> = ({ gift, onGiftEdited }) => {
             {/* if there is a button in form, it will close the modal */}
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
-          <h3 className="font-bold text-lg">Edit Gift</h3>
+          <h3 className="font-bold text-lg">Edit Wishlist Item</h3>
           <div className="py-4">
             <GiftForm
               gift={gift}

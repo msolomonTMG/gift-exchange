@@ -7,6 +7,7 @@ import EditGift from "./Edit";
 import { api } from "~/utils/api";
 import CreateGift from "./Create";
 import AddPurchaser from "./Purchasers/Add";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   exchange: Exchange & {
@@ -54,10 +55,16 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
   };
 
   const Purchasers: FC<{ gift: Gift }> = ({ gift }) => {
+    const purchaseIsForUser = gift.requestorId === session?.user?.id;
     const { data: purchase } = api.gift.getPurchaseByGift.useQuery({
       giftId: gift.id,
-      includePurchasers: true,
+      includePurchasers: !purchaseIsForUser,
+    }, {
+      enabled: !purchaseIsForUser,
     });
+    if (purchaseIsForUser) {
+      return null;
+    }
     return (
       <div className="bg-base-300 p-4 rounded-lg flex flex-wrap gap-2">
         {purchase?.purchasers.map(purchaser => (
@@ -72,7 +79,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                 />          
               </div>
             </div>
-            <span>{purchaser.name}</span>
+            <span className="whitespace-nowrap">{purchaser.name}</span>
           </div>
         ))}
         <AddPurchaser gift={gift} onPurchaserAdded={() => void refetch()} />
@@ -80,7 +87,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
     )
   };
 
-  if (!groupedGifts) {
+  if (!groupedGifts && !isLoading) {
     return (
       <div className="h-full w-full flex flex-col gap-2">
         <h1 className="mb-0">Gifts Not Found</h1>
@@ -88,6 +95,21 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
       </div>
     )
   }
+
+  if (!groupedGifts && isLoading) {
+    return (
+      <div className="flex flex-col w-full gap-2 animate-pulse">
+        <div className="h-10 w-1/2 bg-base-200 rounded-lg" />
+        <div className="h-6 w-24 bg-base-200 rounded-lg" />
+        <div className="grid grid-cols-12 gap-2">
+          <div className="h-96 col-span-9 bg-base-200 rounded-lg" />
+          <div className="h-96 col-span-3 bg-base-200 rounded-lg" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!groupedGifts) return null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -97,7 +119,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
           <div className="collapse-title">
             <UserProfile userId={requestorId} />
           </div>
-          <div className="collapse-content"> 
+          <div className="collapse-content overflow-x-auto"> 
             <div className="overflow-x-auto">
               <table className="table table-zebra">
                 <thead>
@@ -108,7 +130,9 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                     {requestorId === session?.user?.id && (
                       <th>Edit</th>
                     )}
-                    <th>Purchasers</th>
+                    {requestorId !== session?.user?.id && (
+                      <th>Purchasers</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -140,7 +164,10 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                         </div>
                       </td>
                       <td>
-                        <Link href={gift.url ?? ""} className="btn btn-sm">View Online</Link>
+                        <Link href={gift.url ?? ""} className="btn btn-sm flex flex-nowrap">
+                          <span className="whitespace-nowrap">View Online</span>
+                          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                        </Link>
                       </td>
                       {requestorId === session?.user?.id && (
                         <td>
@@ -150,11 +177,13 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                           />
                         </td>
                       )}
-                      <td>
-                        <div className="flex w-fit shrink">
-                          <Purchasers gift={gift} />
-                        </div>
-                      </td>
+                      {requestorId !== session?.user?.id && (
+                        <td>
+                          <div className="flex w-fit shrink">
+                            <Purchasers gift={gift} />
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
