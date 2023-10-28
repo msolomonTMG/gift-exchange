@@ -1,1 +1,1 @@
-export const APP_NAME = "Gift Exchange";
+export const APP_NAME = "Solly Exchange";
