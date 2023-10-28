@@ -50,27 +50,4 @@ export const userRouter = createTRPCRouter({
         data: { isAdmin: input.isAdmin },
       });
     }),
-  updatePreferences: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      emailWhenRequestStageChanged: z.boolean(),
-      emailWhenRequestCommentedOn: z.boolean(),
-      emailWhenAwaitingMyRequestApproval: z.boolean(),
-      emailWhenRequestCreated: z.boolean(),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      // user making the update must be the same as the user being updated or an admin
-      if (ctx.session?.user?.id !== input.id && !ctx.session?.user?.isAdmin) {
-        throw new Error('UNAUTHORIZED');
-      }
-      return await ctx.db.user.update({
-        where: { id: input.id },
-        data: {
-          emailWhenRequestStageChanged: input.emailWhenRequestStageChanged,
-          emailWhenRequestCommentedOn: input.emailWhenRequestCommentedOn,
-          emailWhenAwaitingMyRequestApproval: input.emailWhenAwaitingMyRequestApproval,
-          emailWhenRequestCreated: input.emailWhenRequestCreated,
-        },
-      });
-    }),
 });

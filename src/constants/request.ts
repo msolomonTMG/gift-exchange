@@ -1,1 +1,0 @@
-export const REQUEST_FIELD_TYPES = ["TEXT", "PARAGRAPH", "NUMBER", "DATE", "BOOLEAN", "SELECT"] as const;

@@ -82,7 +82,10 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
             <span className="whitespace-nowrap">{purchaser.name}</span>
           </div>
         ))}
-        <AddPurchaser gift={gift} onPurchaserAdded={() => void refetch()} />
+        <AddPurchaser gift={gift} onPurchaserAdded={() => {
+          void refetch();
+          void onGiftCreated();
+        }} />
       </div>
     )
   };
