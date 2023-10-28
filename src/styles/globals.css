@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn {
+  @apply capitalize;
+}
+
+h1 {
+  @apply mb-4 text-4xl font-bold;
+}
+
+.steps .step[data-content]:after {
+  @apply self-start;
+}
+
+.steps-vertical .step:before {
+  --tw-translate-y: calc(var(--translateYPercentage));
+}

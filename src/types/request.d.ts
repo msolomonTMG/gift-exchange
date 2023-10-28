@@ -1,0 +1,1 @@
+export type RequestFieldType = "TEXT" | "PARAGRAPH" | "NUMBER" | "DATE" | "BOOLEAN" | "SELECT";
