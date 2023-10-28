@@ -1,4 +1,4 @@
-import { BuildingOffice2Icon, ClipboardDocumentListIcon, HandThumbUpIcon, PlayPauseIcon, QueueListIcon, Square3Stack3DIcon, StopCircleIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { UsersIcon } from "@heroicons/react/24/outline";
 import { type NextPage } from "next"
 import Link from "next/link";
 import { type ReactNode } from "react";
@@ -11,48 +11,6 @@ export const Admin: NextPage = () => {
     icon: ReactNode;
   };
   const pages: AdminPage[] = [
-    {
-      title: "Departments",
-      description: "Create and manage departments",
-      path: "/admin/departments",
-      icon: <BuildingOffice2Icon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Approvers",
-      description: "Create and manage approvers",
-      path: "/admin/approvers",
-      icon: <HandThumbUpIcon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Workflow Stages",
-      description: "Create and manage the steps of a workflow",
-      path: "/admin/stages",
-      icon: <StopCircleIcon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Workflows",
-      description: "Create and manage workflows for request types",
-      path: "/admin/workflows",
-      icon: <QueueListIcon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Request Types",
-      description: "Create and manage request types",
-      path: "/admin/request-types",
-      icon: <Square3Stack3DIcon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Request Fields",
-      description: "Create and manage request fields for request types",
-      path: "/admin/request-fields",
-      icon: <ClipboardDocumentListIcon className="h-6 w-6 stroke-2" />
-    },
-    {
-      title: "Request Statuses",
-      description: "Create and manage request statuses",
-      path: "/admin/request-statuses",
-      icon: <PlayPauseIcon className="h-6 w-6 stroke-2" />
-    },
     {
       title: "Users",
       description: "Manage users",

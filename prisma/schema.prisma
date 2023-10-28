@@ -55,33 +55,18 @@ model Session {
 }
 
 model User {
-    id                                 String                    @id @default(cuid())
-    name                               String?
-    email                              String?                   @unique
-    emailVerified                      DateTime?
-    image                              String?
-    isAdmin                            Boolean                   @default(false)
-    accounts                           Account[]
-    sessions                           Session[]
-    departmentStageApprover            DepartmentStageApprover[]
-    departmentParticipant              Department[]              @relation("departmentParticipant")
-    departmentRecruiter                Department[]              @relation("departmentRecruiter")
-    requestComment                     RequestComment[]
-    requestCreated                     Request[]                 @relation("creator")
-    requestCurrentApprover             Request[]                 @relation("approver")
-    requestEventActioned               RequestEvent[]
-    requestStageApprover               RequestStageApprover[]
-    requestParticipant                 Request[]                 @relation("requestParticipant")
-    requestRecruiter                   Request[]                 @relation("requestRecruiter")
-    lastLogin                          DateTime?
-    emailWhenRequestStageChanged       Boolean                   @default(true)
-    emailWhenRequestCommentedOn        Boolean                   @default(true)
-    emailWhenAwaitingMyRequestApproval Boolean                   @default(true)
-    emailWhenRequestCreated            Boolean                   @default(true)
-    exchangesParticipating             Exchange[]                @relation("exchangeParticipant")
-    exchangesCreated                   Exchange[]                @relation("exchangeCreator")
-    giftsRequested                     Gift[]                    @relation("giftRequestor")
-    purchases                          Purchase[]                @relation("giftPurchaser")
+    id                     String     @id @default(cuid())
+    name                   String?
+    email                  String?    @unique
+    emailVerified          DateTime?
+    image                  String?
+    isAdmin                Boolean    @default(false)
+    accounts               Account[]
+    sessions               Session[]
+    exchangesParticipating Exchange[] @relation("exchangeParticipant")
+    exchangesCreated       Exchange[] @relation("exchangeCreator")
+    giftsRequested         Gift[]     @relation("giftRequestor")
+    purchases              Purchase[] @relation("giftPurchaser")
 }
 
 model VerificationToken {
@@ -92,225 +77,10 @@ model VerificationToken {
     @@unique([identifier, token])
 }
 
-model Department {
-    id                      Int                       @id @default(autoincrement())
-    name                    String                    @unique
-    createdAt               DateTime                  @default(now())
-    updatedAt               DateTime                  @updatedAt
-    departmentStageApprover DepartmentStageApprover[]
-    participants            User[]                    @relation("departmentParticipant")
-    recruiters              User[]                    @relation("departmentRecruiter")
-    requests                Request[]
-
-    @@index([name])
-}
-
-model Stage {
-    id                      Int                       @id @default(autoincrement())
-    name                    String                    @unique
-    createdAt               DateTime                  @default(now())
-    updatedAt               DateTime                  @updatedAt
-    departmentStageApprover DepartmentStageApprover[]
-    workflows               StageInWorkflow[]
-    request                 Request[]
-
-    @@index([name])
-}
-
-model DepartmentStageApprover {
-    id           Int        @id @default(autoincrement())
-    deparmtent   Department @relation(fields: [departmentId], references: [id])
-    stage        Stage      @relation(fields: [stageId], references: [id])
-    approver     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    createdAt    DateTime   @default(now())
-    updatedAt    DateTime   @updatedAt
-    departmentId Int
-    stageId      Int
-    userId       String
-
-    @@unique([stageId, departmentId, userId])
-    @@index([stageId])
-    @@index([departmentId])
-    @@index([userId])
-}
-
-model Workflow {
-    id           Int               @id @default(autoincrement())
-    name         String            @unique
-    createdAt    DateTime          @default(now())
-    updatedAt    DateTime          @updatedAt
-    stages       StageInWorkflow[]
-    requestTypes RequestType[]
-}
-
-model StageInWorkflow {
-    id                   Int                    @id @default(autoincrement())
-    order                Int
-    workflow             Workflow               @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-    workflowId           Int
-    stage                Stage                  @relation(fields: [stageId], references: [id], onDelete: Cascade)
-    stageId              Int
-    requestStageApprover RequestStageApprover[]
-
-    @@unique([workflowId, stageId])
-    @@unique([workflowId, order])
-    @@unique([workflowId, stageId, order])
-    @@index([stageId])
-}
-
-model RequestField {
-    id                        Int                         @id @default(autoincrement())
-    name                      String                      @unique
-    type                      String
-    options                   RequestFieldOption[]
-    createdAt                 DateTime                    @default(now())
-    updatedAt                 DateTime                    @updatedAt
-    requestFieldInRequestType RequestFieldInRequestType[]
-    requestFieldInRequest     RequestFieldInRequest[]
-
-    @@index([name])
-}
-
-model RequestFieldOption {
-    id             Int           @id @default(autoincrement())
-    name           String
-    requestField   RequestField? @relation(fields: [requestFieldId], references: [id])
-    requestFieldId Int?
-
-    @@index([name])
-    @@index([requestFieldId])
-}
-
-model RequestFieldInRequestType {
-    id             Int          @id @default(autoincrement())
-    order          Int
-    requestType    RequestType  @relation(fields: [requestTypeId], references: [id])
-    requestTypeId  Int
-    requestField   RequestField @relation(fields: [requestFieldId], references: [id])
-    requestFieldId Int
-    createdAt      DateTime     @default(now())
-    updatedAt      DateTime     @updatedAt
-
-    @@index([requestTypeId])
-    @@index([requestFieldId])
-}
-
-model RequestType {
-    id                        Int                         @id @default(autoincrement())
-    name                      String                      @unique
-    description               String?
-    workflow                  Workflow                    @relation(fields: [workflowId], references: [id])
-    workflowId                Int
-    createdAt                 DateTime                    @default(now())
-    updatedAt                 DateTime                    @updatedAt
-    requestFieldInRequestType RequestFieldInRequestType[]
-    Request                   Request[]
-
-    @@index([name])
-    @@index([workflowId])
-}
-
-model RequestFieldInRequest {
-    id             Int          @id @default(autoincrement())
-    request        Request      @relation(fields: [requestId], references: [id])
-    requestId      Int
-    requestField   RequestField @relation(fields: [requestFieldId], references: [id])
-    requestFieldId Int
-    value          String
-    createdAt      DateTime     @default(now())
-    updatedAt      DateTime     @updatedAt
-
-    @@index([requestId])
-    @@index([requestFieldId])
-}
-
-model RequestStatus {
-    id        Int       @id @default(autoincrement())
-    name      String    @unique
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    Request   Request[]
-
-    @@index([name])
-}
-
-model RequestComment {
-    id        Int      @id @default(autoincrement())
-    request   Request  @relation(fields: [requestId], references: [id])
-    requestId Int
-    user      User     @relation(fields: [userId], references: [id])
-    userId    String
-    comment   String   @default("") @db.VarChar(1000)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([requestId])
-    @@index([userId])
-}
-
-model RequestStageApprover {
-    id        Int             @id @default(autoincrement())
-    request   Request         @relation(fields: [requestId], references: [id])
-    requestId Int
-    user      User            @relation(fields: [userId], references: [id])
-    userId    String
-    stage     StageInWorkflow @relation(fields: [stageId], references: [id])
-    stageId   Int
-    createdAt DateTime        @default(now())
-    updatedAt DateTime        @updatedAt
-
-    @@index([requestId])
-    @@index([userId])
-    @@index([stageId])
-}
-
-model Request {
-    id               Int                     @id @default(autoincrement())
-    department       Department              @relation(fields: [departmentId], references: [id])
-    departmentId     Int
-    requestType      RequestType             @relation(fields: [requestTypeId], references: [id])
-    requestTypeId    Int
-    createdAt        DateTime                @default(now())
-    updatedAt        DateTime                @updatedAt
-    fields           RequestFieldInRequest[]
-    creator          User                    @relation("creator", fields: [creatorId], references: [id])
-    creatorId        String
-    status           RequestStatus           @relation(fields: [requestStatusId], references: [id])
-    stage            Stage                   @relation(fields: [stageId], references: [id])
-    stageId          Int
-    currentApprovers User[]                  @relation("approver")
-    stageApprovers   RequestStageApprover[]
-    participants     User[]                  @relation("requestParticipant")
-    recruiters       User[]                  @relation("requestRecruiter")
-    comments         RequestComment[]
-    requestStatusId  Int
-    events           RequestEvent[]
-
-    @@index([requestTypeId])
-    @@index([creatorId])
-    @@index([stageId])
-    @@index([requestStatusId])
-    @@index([departmentId])
-}
-
-model RequestEvent {
-    id        Int      @id @default(autoincrement())
-    request   Request  @relation(fields: [requestId], references: [id])
-    requestId Int
-    user      User     @relation(fields: [userId], references: [id])
-    userId    String
-    action    String
-    value     String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([requestId])
-    @@index([userId])
-}
-
 model Exchange {
     id           Int      @id @default(autoincrement())
     name         String
+    slug         String   @unique @default(cuid())
     description  String
     participants User[]   @relation("exchangeParticipant")
     creator      User     @relation("exchangeCreator", fields: [creatorId], references: [id])

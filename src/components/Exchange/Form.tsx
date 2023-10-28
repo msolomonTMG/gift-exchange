@@ -8,6 +8,7 @@ import { type Exchange } from "@prisma/client";
 type Inputs = {
   name: string;
   description: string;
+  slug: string;
 }
 
 interface Props {
@@ -30,6 +31,7 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
     defaultValues: {
       name: exchange?.name,
       description: exchange?.description,
+      slug: exchange?.slug,
     }
   });
 
@@ -40,6 +42,7 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
       const createdExchange = await createExchange({ 
         name: data.name,
         description: data.description,
+        slug: data.slug,
       });
       toast.success(`${data.name} exchange created successfully!`, {
         theme: isDarkTheme ? "dark" : "light",
@@ -80,6 +83,20 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
         />
         {errors.description && <span className="text-error">{errors.description.message}</span>}
       </div>
+      <div className="w-full">
+        <label
+          className="label"
+          htmlFor="slug"
+        >
+          URL Slug
+        </label>
+        <input 
+          className="input input-bordered w-full"
+          {...register("slug", { required: true })}
+        />
+      </div>
+      {/* errors will return when field validation fails  */}
+      {errors.slug && <span className="text-error">{errors.slug.message}</span>}
       <button 
         className="btn btn-primary"
         type="submit"

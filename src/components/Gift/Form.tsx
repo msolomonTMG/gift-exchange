@@ -27,7 +27,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
   } = api.gift.create.useMutation({});
   const {
     mutateAsync: updateGift,
-    isLoading: updateIsLoading,
   } = api.gift.update.useMutation({});
 
   const {

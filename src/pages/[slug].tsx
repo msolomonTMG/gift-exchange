@@ -9,20 +9,19 @@ import RemoveParticipant from "~/components/Exchange/RemoveParticipant";
 
 export const ExchangePage: NextPage = () => {
   const router = useRouter();
-  const { id } = router.query as { id: string };
-  const { data: exchange, isLoading, refetch } = api.exchange.getById.useQuery({
-    id: Number(id),
+  const { slug } = router.query as { slug: string };
+  const { data: exchange, isLoading, refetch } = api.exchange.getBySlug.useQuery({
+    slug,
     includeGifts: true,
-    includeParticipants: true,
   }, {
-    enabled: id !== undefined
+    enabled: slug !== undefined
   });
 
   if (!exchange && !isLoading) {
     return (
       <div className="h-full w-full flex flex-col gap-2">
         <h1 className="mb-0">Exchange Not Found</h1>
-        <p>Exchange with id {id} not found</p>
+        <p>Exchange with slug <pre>{slug}</pre> not found</p>
       </div>
     )
   }

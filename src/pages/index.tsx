@@ -3,53 +3,38 @@ import Link from "next/link";
 import { type Column, useTable, useGlobalFilter } from "react-table";
 import { api } from "~/utils/api";
 import { useMemo } from "react";
-import { type User, type Request, type RequestStatus, type Department, type RequestType } from "@prisma/client";
+import { type User, type Exchange } from "@prisma/client";
 import Image from "next/image";
 
 export default function Home() {
-  const { data: requests } = api.request.getAll.useQuery({
-    includeCreator: true,
-    includeRequestStatus: true,
-    includeDepartment: true,
-    includeRequestType: true,
+  const { data: exchanges } = api.exchange.getExchangesParticipating.useQuery({
+    includeCreator: true
   });
 
-  type RequestInTable = Request & {
+  type ExchangeWithContext = Exchange & {
     creator: User;
-    status: RequestStatus;
-    department: Department;
-    requestType: RequestType;
-  };
+  }
+
   const data = useMemo(() => {
-    return requests as RequestInTable[] ?? []
-  }, [requests]);
+    return exchanges as ExchangeWithContext[] ?? []
+  }, [exchanges]);
 
-  console.log({ data })
-
-  const columns: Column<RequestInTable>[] = useMemo(() => [
+  const columns: Column<ExchangeWithContext>[] = useMemo(() => [
     {
-      Header: 'Request ID',
-      accessor: (row: RequestInTable) => 'REQ-' + row.id,
-      Cell: ({ row } : { row: { original: RequestInTable }}) => {
+      Header: 'Name',
+      accessor: (row: ExchangeWithContext) => row.name,
+      Cell: ({ row } : { row: { original: ExchangeWithContext }}) => {
         return (
-          <Link className="underline" href={`/request/${row.original.id}`}>
-            REQ-{row.original.id}
+          <Link className="underline" href={`/${row.original.slug}`}>
+            {row.original.name}
           </Link>
         )
       },
     },
     {
-      Header: 'Department',
-      accessor: (row: RequestInTable) => row.department.name,
-    },
-    {
-      Header: 'Type',
-      accessor: (row: RequestInTable) => row.requestType.name,
-    },
-    {
       Header: 'Creator',
-      accessor: (row: RequestInTable) => row.creator.name,
-      Cell: ({ row } : { row: { original: RequestInTable }}) => {
+      accessor: (row: ExchangeWithContext) => row.creator.name,
+      Cell: ({ row } : { row: { original: ExchangeWithContext }}) => {
         return (
           <div className="flex items-center gap-2">
             <Image
@@ -60,29 +45,6 @@ export default function Home() {
               height={32}
             />
             <span>{row.original.creator.name}</span>
-          </div>
-        )
-      },
-    },
-    {
-      Header: 'Status',
-      accessor: (row: RequestInTable) => row.status.name,
-      Cell: ({ row } : { row: { original: RequestInTable }}) => {
-        const badgeColor = (status: string) => {
-          switch (status) {
-            case "Approved":
-              return "badge-success";
-            case "Pending":
-              return "badge-secondary";
-            case "Rejected":
-              return "badge-error";
-            default:
-              return "";
-          }
-        };
-        return (
-          <div className={`badge ${badgeColor(row.original.status.name)}`}>
-            {row.original.status.name}
           </div>
         )
       },
@@ -126,15 +88,15 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>People Team</title>
-        <meta name="description" content="Create and manage requests" />
+        <title>Solly Exchange</title>
+        <meta name="description" content="Create and manage exchanges" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col gap-2">
-        <h1>Requests</h1>
+        <h1>Exchanges</h1>
         <div className="flex items-center gap-2">
-          <Link href="/request/create" className="btn w-fit">
-            Create Request
+          <Link href="/exchange/create" className="btn w-fit">
+            Create Exchange
           </Link>
           {renderGlobalFilter()}
         </div>

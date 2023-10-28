@@ -10,6 +10,7 @@ export const exchangeRouter = createTRPCRouter({
     .input(z.object({ 
       name: z.string(),
       description: z.string(),
+      slug: z.string(),
     }))
     .mutation(({ input, ctx }) => {
       console.log({ input })
@@ -17,6 +18,7 @@ export const exchangeRouter = createTRPCRouter({
         data: {
           name: input.name,
           description: input.description,
+          slug: input.slug,
           creator: {
             connect: {
               id: ctx.session.user.id
@@ -88,13 +90,58 @@ export const exchangeRouter = createTRPCRouter({
         },
       });
     }),
+  getExchangesParticipating: protectedProcedure
+    .input(z.object({
+      includeCreator: z.boolean().optional().default(false),
+    }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.exchange.findMany({
+        where: {
+          participants: {
+            some: {
+              id: ctx.session.user.id
+            }
+          }
+        },
+        include: {
+          creator: input.includeCreator,
+        }
+      });
+    }),
   getAll: protectedProcedure
     .input(z.object({
-      includeParticipants: z.boolean().optional().default(false),
-      includeRecruiters: z.boolean().optional().default(false),
+      includeCreator: z.boolean().optional().default(false),
     }))
-    .query(async ({ ctx }) => {
-      return await ctx.db.exchange.findMany();
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.exchange.findMany({
+        include: {
+          creator: input.includeCreator,
+        }
+      });
+    }),
+  getBySlug: protectedProcedure
+    .input(z.object({ 
+      slug: z.string(),
+      includeGifts: z.boolean().optional().default(false),
+    }))
+    .query(async ({ input, ctx }) => {
+      const exchange = await ctx.db.exchange.findUniqueOrThrow({
+        where: { slug: input.slug },
+        include: {
+          participants: true,
+          creator: true,
+          gifts: input.includeGifts,
+        }
+      });
+      // if the user isnt a recruiter, participant, stageApprover, creator, or is not an admin, throw an error
+      const currentUserId = ctx.session.user.id;
+      const isParticipant = exchange.participants.find((participant) => participant.id === currentUserId);
+      const isCreator = exchange.creator.id === currentUserId;
+      const isAdmin = ctx.session.user.isAdmin;
+      if (!isParticipant && !isCreator && !isAdmin) {
+        throw new Error("You are not authorized to view this exchange");
+      }
+      return exchange;
     }),
   getById: protectedProcedure
     .input(z.object({ 

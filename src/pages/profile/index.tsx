@@ -1,7 +1,6 @@
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import ProfileContainer from "~/components/Profile/Container";
 import getRandomAvatar from "~/helpers/getRandomAvatar";
 
 export const Profile: NextPage = () => {
@@ -49,7 +48,6 @@ export const Profile: NextPage = () => {
             </div>
           </div>
         </div>
-        <ProfileContainer user={session.user} />
       </div>
     );
   }

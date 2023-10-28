@@ -144,4 +144,52 @@ export const giftRouter = createTRPCRouter({
       },
     });
   }),
+  removePurchaser: protectedProcedure
+    .input(z.object({
+      giftId: z.number(),
+      userId: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const gift = await ctx.db.gift.findUniqueOrThrow({
+        where: { id: input.giftId },
+        include: { 
+          purchase: true,
+        }
+      });
+      const exchange = await ctx.db.exchange.findUniqueOrThrow({
+        where: { id: gift.exchangeId },
+        include: {
+          participants: true,
+        }
+      });
+      // ensure that the user making this request is an approver, participant, or recruiter for this request
+      const currentUserId = ctx.session.user.id;
+      const isParticipant = exchange.participants.find((participant) => participant.id === currentUserId);
+      const isAdmin = ctx.session.user.isAdmin;
+      if (!isParticipant && !isAdmin) {
+        throw new Error("You are not authorized to remove purchasers from this gift");
+      }
+      const purchase = await ctx.db.purchase.findUnique({
+        where: { giftId: input.giftId },
+        include: {
+          purchasers: true,
+        }
+      });
+      if (!purchase) {
+        throw new Error("No purchasers exist for this gift");
+      }
+      const isExistingPurchaser = purchase.purchasers.find((purchaser) => purchaser.id === input.userId);
+      if (!isExistingPurchaser) {
+        throw new Error("Purchaser does not exist for this gift");
+      };
+      // add the participant
+      return await ctx.db.purchase.update({
+        where: { id: purchase.id },
+        data: {
+          purchasers: {
+            disconnect: { id: input.userId },
+          },
+        },
+      });
+    }),
 });

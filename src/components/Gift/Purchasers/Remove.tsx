@@ -1,34 +1,34 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { type Request } from "@prisma/client";
+import { type Gift } from "@prisma/client";
 import { type FC } from "react";
 import { toast } from "react-toastify";
 import useIsDarkTheme from "~/hooks/useIsDarkTheme";
 import { api } from "~/utils/api";
 
 type Props = {
-  request: Request;
+  gift: Gift;
   participantUserId: string;
-  onParticipantRemoved: () => void;
+  onPurchaserRemoved: () => void;
 }
 
-export const RemoveParticipant: FC<Props> = ({
-  request,
+export const RemovePurchaser: FC<Props> = ({
+  gift,
   participantUserId,
-  onParticipantRemoved,
+  onPurchaserRemoved,
 }) => {
-  const { mutateAsync: removeParticipant, isLoading } = api.request.removeParticipant.useMutation({});
+  const { mutateAsync: removePurchaser, isLoading } = api.gift.removePurchaser.useMutation({});
   const isDarkTheme = useIsDarkTheme();
 
   const handleRemove = async () => {
     try {
-      await removeParticipant({
-        requestId: request.id,
+      await removePurchaser({
+        giftId: gift.id,
         userId: participantUserId,
       });
-      toast.success("Participant removed successfully", {
+      toast.success("Puchaser removed successfully", {
         theme: isDarkTheme ? "colored" : "light",
       });
-      void onParticipantRemoved();
+      void onPurchaserRemoved();
     } catch (e) {
       const error = e as Error;
       toast.error('Error deleting participant: ' + error.message, {
@@ -38,19 +38,16 @@ export const RemoveParticipant: FC<Props> = ({
   }
   return (
     <>
-      <button className="flex items-center" onClick={()=>(document.getElementById(`remove_participant_${participantUserId}_modal`) as HTMLDialogElement).showModal()}>
+      <button className="flex items-center" onClick={()=>(document.getElementById(`remove_purchaser_${participantUserId}_modal`) as HTMLDialogElement).showModal()}>
         <XMarkIcon className="h-3 w-3" />
       </button>
-      <dialog id={`remove_participant_${participantUserId}_modal`} className="modal">
+      <dialog id={`remove_purchaser_${participantUserId}_modal`} className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">
-            Remove Participant
+            Remove Purchaser
           </h3>
           <p className="py-2">
-            This user will no longer be a participant on the request.
-          </p>
-          <p className="py-2">
-            This user may lose access to this request unless they are an approver or if they are added in other ways such as a recruiter.
+            This user will no longer be a purchaser on the gift.
           </p>
           <div className="modal-action">
             <form method="dialog">
@@ -62,7 +59,7 @@ export const RemoveParticipant: FC<Props> = ({
                   {isLoading && (
                     <div className="loading loading-spinner" />
                   )}
-                  Remove Participant
+                  Remove Purchaser
                 </button>
                 <button className="btn">Cancel</button>
               </div>
@@ -74,4 +71,4 @@ export const RemoveParticipant: FC<Props> = ({
   )
 };
 
-export default RemoveParticipant;
+export default RemovePurchaser;
