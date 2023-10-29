@@ -34,6 +34,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string(),
     AIRTABLE_EMAIL_PASSWORD: z.string(),
     AIRTABLE_EMAIL_WEBHOOK: z.string(),
+    OPENGRAPH_API_KEY: z.string(),
   },
 
   /**
@@ -59,6 +60,7 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     AIRTABLE_EMAIL_PASSWORD: process.env.AIRTABLE_EMAIL_PASSWORD,
     AIRTABLE_EMAIL_WEBHOOK: process.env.AIRTABLE_EMAIL_WEBHOOK,
+    OPENGRAPH_API_KEY: process.env.OPENGRAPH_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

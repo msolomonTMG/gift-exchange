@@ -1,50 +1,72 @@
 import { z } from "zod";
+import { env } from "~/env.mjs";
 
 import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { JSDOM } from 'jsdom';
+import ogs from 'open-graph-scraper'
 
-async function fetchOGImage(url: string, timeout = 5000): Promise<string | null | undefined> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
+async function fetchOGImageManually(url: string): Promise<string | null> {
   try {
-    const response: Response = await fetch(url, { signal: controller.signal });
-    const reader = response.body?.getReader();
+    // Fetch the content of the URL
+    const response = await fetch(url);
+    const htmlContent = await response.text();
 
-    const chunks: Uint8Array[] = [];
-    let found = false;
-    let ogImageContent: string | null | undefined = null;
+    // Parse the HTML content using JSDOM
+    const dom = new JSDOM(htmlContent);
+    const document = dom.window.document;
 
-    if (reader) {
-      while (!found) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        if (value) {
-          chunks.push(value);
-          const joinedChunksArray: number[] = ([] as number[]).concat(...chunks.map(chunk => Array.from(chunk)));
-          const joinedChunks = new TextDecoder().decode(new Uint8Array(joinedChunksArray));
-          const ogImageMatch = /<meta[^>]*property=["']og:image["'][^>]*content=["'](.*?)["']/.exec(joinedChunks);
-
-          if (ogImageMatch) {
-            ogImageContent = ogImageMatch[1];
-            found = true;
-          }
-        }
-      }
+    // Extract the content of the 'og:image' meta tag
+    const ogImageTag = document.querySelector('meta[property="og:image"]');
+    if (ogImageTag) {
+      return ogImageTag.getAttribute('content');
+    } else {
+      throw new Error('og:image meta tag not found.');
     }
-
-    return ogImageContent;
 
   } catch (error) {
     console.error('Error fetching the og:image:', error);
     return null;
-  } finally {
-    clearTimeout(timeoutId);
+  }
+}
+
+async function fetchOgImageViaScraper (url: string): Promise<string | null | undefined> {
+  try {
+    const options = { url: url };
+    const { result } = await ogs(options);
+    if (!result.ogImage?.[0]?.url) {
+      return null;
+    }
+    return result.ogImage?.[0]?.url;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+async function fetchOgImageViaApi (url: string): Promise<string | null | undefined> {
+  try {
+    const encodedUrl = encodeURIComponent(url);
+    const response = await fetch(`https://opengraph.io/api/1.1/site/${encodedUrl}?app_id=${env.OPENGRAPH_API_KEY}`);
+    interface OpenGraphData {
+      title: string;
+      type: string;
+      image: {
+        url: string;
+        width: string;
+        height: string;
+      };
+    }
+    console.log({ response, encodedUrl, })
+    const json = await response.json() as OpenGraphData;
+    console.log({ json })
+    return json.image.url;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 }
 
@@ -59,7 +81,18 @@ export const giftRouter = createTRPCRouter({
       exchangeId: z.number(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const image = await fetchOGImage(input.url ?? "");
+      let image = null;
+      try {
+        image = await fetchOgImageViaScraper(input.url ?? "");
+        if (!image) {
+          image = await fetchOgImageViaApi(input.url ?? "");
+        }
+        if (!image) {
+          image = await fetchOGImageManually(input.url ?? "");
+        }
+      } catch (e) {
+        console.error(e);
+      }
       return ctx.db.gift.create({
         data: {
           name: input.name,
@@ -81,7 +114,18 @@ export const giftRouter = createTRPCRouter({
       price: z.number().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const image = await fetchOGImage(input.url ?? "");
+      let image = null;
+      try {
+        image = await fetchOgImageViaScraper(input.url ?? "");
+        if (!image) {
+          image = await fetchOgImageViaApi(input.url ?? "");
+        }
+        if (!image) {
+          image = await fetchOGImageManually(input.url ?? "");
+        }
+      } catch (e) {
+        console.error(e);
+      }
       return ctx.db.gift.update({
         where: { id: input.id },
         data: {
