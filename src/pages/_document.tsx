@@ -13,7 +13,7 @@ export default function Document() {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta property="og:title" content={APP_NAME} />
         <meta property="og:description" content={APP_DESCRIPTION} />
-        <meta property="og:image" content="/public/logo.png" />
+        <meta property="og:image" content="/logo.png" />
         <meta property="og:url" content="https://www.solly.exchange" />
         <meta property="og:type" content="website" />
       </Head>
