@@ -1,4 +1,4 @@
-import { ArchiveBoxIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { ArchiveBoxIcon, ArrowPathIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { type NextPage } from "next"
 import Link from "next/link";
 import { type ReactNode } from "react";
@@ -16,6 +16,12 @@ export const Admin: NextPage = () => {
       description: "Manage users",
       path: "/admin/users",
       icon: <UsersIcon className="h-6 w-6 stroke-2" />
+    },
+    {
+      title: "Exchanges",
+      description: "Manage exchanges",
+      path: "/admin/exchanges",
+      icon: <ArrowPathIcon className="h-6 w-6 stroke-2" />
     },
     {
       title: "Gifts",

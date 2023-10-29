@@ -22,6 +22,12 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
     mutateAsync: createExchange, 
     isLoading: createIsLoading 
   } = api.exchange.create.useMutation({});
+  const {
+    mutateAsync: updateExchange,
+    isLoading: updateIsLoading,
+  } = api.exchange.update.useMutation({});
+
+  const isLoading = createIsLoading || updateIsLoading;
 
   const {
     register,
@@ -48,6 +54,18 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
         theme: isDarkTheme ? "dark" : "light",
       });
       void onSubmit?.(createdExchange);
+    }
+    if (submit === "update") {
+      const updatedExchange = await updateExchange({
+        id: exchange!.id,
+        name: data.name,
+        description: data.description,
+        slug: data.slug,
+      });
+      toast.success(`${data.name} exchange updated successfully!`, {
+        theme: isDarkTheme ? "dark" : "light",
+      });
+      void onSubmit?.(updatedExchange);
     }
   };
 
@@ -100,8 +118,9 @@ export const ExchangeForm: FC<Props> = ({ submit, onSubmit, exchange }) => {
       <button 
         className="btn btn-primary"
         type="submit"
+        disabled={isLoading}
       >
-        {createIsLoading && (
+        {isLoading && (
           <div className="loading loading-spinner" />
         )}
         Submit

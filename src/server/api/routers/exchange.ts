@@ -32,6 +32,33 @@ export const exchangeRouter = createTRPCRouter({
         },
       });
     }),
+  update: protectedProcedure
+    .input(z.object({ 
+      id: z.number(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      slug: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // check to make sure the user is the creator of the exchange or an admin
+      const currentUserId = ctx.session.user.id;
+      const isAdmin = ctx.session.user.isAdmin;
+      const exchange = await ctx.db.exchange.findUniqueOrThrow({
+        where: { id: input.id },
+      });
+      const isExchangeCreator = exchange.creatorId === currentUserId;
+      if (!isExchangeCreator && !isAdmin) {
+        throw new Error("You are not authorized to update this exchange");
+      }
+      return ctx.db.exchange.update({
+        where: { id: input.id },
+        data: {
+          name: input.name,
+          description: input.description,
+          slug: input.slug,
+        },
+      });
+    }),
   addParticipant: protectedProcedure
     .input(z.object({ 
       exchangeId: z.number(),
