@@ -6,46 +6,6 @@ import {
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
-import { JSDOM } from 'jsdom';
-import ogs from 'open-graph-scraper'
-
-async function fetchOGImageManually(url: string): Promise<string | null> {
-  try {
-    // Fetch the content of the URL
-    const response = await fetch(url);
-    const htmlContent = await response.text();
-
-    // Parse the HTML content using JSDOM
-    const dom = new JSDOM(htmlContent);
-    const document = dom.window.document;
-
-    // Extract the content of the 'og:image' meta tag
-    const ogImageTag = document.querySelector('meta[property="og:image"]');
-    if (ogImageTag) {
-      return ogImageTag.getAttribute('content');
-    } else {
-      throw new Error('og:image meta tag not found.');
-    }
-
-  } catch (error) {
-    console.error('Error fetching the og:image:', error);
-    return null;
-  }
-}
-
-async function fetchOgImageViaScraper (url: string): Promise<string | null | undefined> {
-  try {
-    const options = { url: url };
-    const { result } = await ogs(options);
-    if (!result.ogImage?.[0]?.url) {
-      return null;
-    }
-    return result.ogImage?.[0]?.url;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
 
 async function fetchOgImageViaApi (url: string): Promise<string | null | undefined> {
   try {
@@ -81,18 +41,7 @@ export const giftRouter = createTRPCRouter({
       exchangeId: z.number(),
     }))
     .mutation(async ({ input, ctx }) => {
-      let image = null;
-      try {
-        image = await fetchOgImageViaScraper(input.url ?? "");
-        if (!image) {
-          image = await fetchOgImageViaApi(input.url ?? "");
-        }
-        if (!image) {
-          image = await fetchOGImageManually(input.url ?? "");
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      const image = await fetchOgImageViaApi(input.url ?? "");
       return ctx.db.gift.create({
         data: {
           name: input.name,
@@ -114,18 +63,7 @@ export const giftRouter = createTRPCRouter({
       price: z.number().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      let image = null;
-      try {
-        image = await fetchOgImageViaScraper(input.url ?? "");
-        if (!image) {
-          image = await fetchOgImageViaApi(input.url ?? "");
-        }
-        if (!image) {
-          image = await fetchOGImageManually(input.url ?? "");
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      const image = await fetchOgImageViaApi(input.url ?? "");
       return ctx.db.gift.update({
         where: { id: input.id },
         data: {
