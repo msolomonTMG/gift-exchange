@@ -26,7 +26,8 @@ export const CreateGift: FC<Props> = ({ exchangeId, onGiftCreated }) => {
               submit="create"
               exchangeId={exchangeId}
               onSubmit={() => {
-                onGiftCreated();
+                console.log("Form just emitted onSubmit")
+                void onGiftCreated();
               }}
             />
           </div>

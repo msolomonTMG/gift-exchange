@@ -73,7 +73,10 @@ export const ExchangePage: NextPage = () => {
           <AddParticipant exchange={exchange} onParticipantAdded={() => void refetch()} />
         </div>
         <CreateGift exchangeId={exchange.id} onGiftCreated={() => void refetch()} />
-        <GiftList exchange={exchange} onGiftCreated={() => void refetch()} />
+        <GiftList exchange={exchange} onGiftCreated={() => {
+          console.log('created was called')
+          void refetch();
+        }} />
       </div>
       
     </div>

@@ -3,11 +3,12 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { type FC } from "react";
-import EditGift from "./Edit";
+import EditGift from "~/components/Gift/Edit";
 import { api } from "~/utils/api";
-import CreateGift from "./Create";
+import CreateGift from "~/components/Gift/Create";
 import AddPurchaser from "./Purchasers/Add";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import RemovePurchaser from "~/components/Gift/Purchasers/Remove";
 
 type Props = {
   exchange: Exchange & {
@@ -35,7 +36,6 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
 
   const UserProfile: FC<{ userId: string }> = ({ userId }) => {
     const user = exchange.participants.find(p => p.id === userId);
-    console.log({ exchange, userId })
     if (!user) return null;
     return (
       <div className="flex items-center gap-2">
@@ -80,6 +80,14 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
               </div>
             </div>
             <span className="whitespace-nowrap">{purchaser.name}</span>
+            <RemovePurchaser 
+              gift={gift}
+              participantUserId={purchaser.id}
+              onPurchaserRemoved={() => {
+                void refetch();
+                void onGiftCreated();
+              }}
+            />
           </div>
         ))}
         <AddPurchaser gift={gift} onPurchaserAdded={() => {
@@ -162,7 +170,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                         </div>
                       </td>
                       <td>
-                        <div className="w-full">
+                        <div className="w-full min-w-xs">
                           {gift.description}
                         </div>
                       </td>
@@ -176,15 +184,16 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                         <td>
                           <EditGift 
                             gift={gift} 
-                            onGiftEdited={() => void refetch()} 
+                            onGiftEdited={() => {
+                              void refetch();
+                              void onGiftCreated();
+                            }}
                           />
                         </td>
                       )}
                       {requestorId !== session?.user?.id && (
                         <td>
-                          <div className="flex w-fit shrink">
-                            <Purchasers gift={gift} />
-                          </div>
+                          <Purchasers gift={gift} />
                         </td>
                       )}
                     </tr>
@@ -194,7 +203,11 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                   <tfoot>
                     <CreateGift 
                       exchangeId={exchange.id} 
-                      onGiftCreated={() => void refetch()} 
+                      onGiftCreated={() => {
+                        console.log("Create gift got the emission")
+                        void refetch();
+                        void onGiftCreated();
+                      }} 
                     />
                   </tfoot>
                 )}

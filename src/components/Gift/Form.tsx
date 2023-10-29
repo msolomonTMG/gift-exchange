@@ -1,4 +1,4 @@
-import { type FC } from "react";
+import { useEffect, type FC } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { api } from "~/utils/api";
 import { toast } from 'react-toastify';
@@ -46,7 +46,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
   const isDarkTheme = useIsDarkTheme();
   
   const onFormSubmission: SubmitHandler<Inputs> = async (data) => {
-    console.log({ data })
     if (submit === "create") {
       const createdGift = await createGift({ 
         name: data.name,
@@ -74,6 +73,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       toast.success(`${data.name} edited successfully!`, {
         theme: isDarkTheme ? "dark" : "light",
       });
+      (document.getElementById(`edit_gift_${gift!.id}_modal`) as HTMLDialogElement).close();
       void onSubmit?.(editedGift);
     }
   };
