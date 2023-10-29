@@ -12,18 +12,20 @@ async function fetchOgImageViaApi (url: string): Promise<string | null | undefin
     const encodedUrl = encodeURIComponent(url);
     const response = await fetch(`https://opengraph.io/api/1.1/site/${encodedUrl}?app_id=${env.OPENGRAPH_API_KEY}`);
     interface OpenGraphData {
-      title: string;
-      type: string;
-      image: {
-        url: string;
-        width: string;
-        height: string;
-      };
+      openGraph: {
+        title: string;
+        type: string;
+        image: {
+          url: string;
+          width: string;
+          height: string;
+        };
+      }
     }
     console.log({ response, encodedUrl, })
     const json = await response.json() as OpenGraphData;
     console.log({ json })
-    return json.image.url;
+    return json.openGraph.image.url;
   } catch (e) {
     console.error(e);
     return null;
