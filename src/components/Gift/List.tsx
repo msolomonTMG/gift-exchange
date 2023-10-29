@@ -2,7 +2,7 @@ import { type Gift, type Exchange, type User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { type FC } from "react";
+import { type FC, useMemo } from "react";
 import EditGift from "~/components/Gift/Edit";
 import { api } from "~/utils/api";
 import CreateGift from "~/components/Gift/Create";
@@ -24,6 +24,13 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
     exchangeId: exchange.id,
     includeRequestor: true,
   });
+
+  const userRequestedGiftsInExchage = useMemo(() => {
+    const gifts = exchange?.gifts.filter(gift => 
+      gift.requestorId === session?.user?.id
+    );
+    return gifts?.length ?? 0 > 0;
+  }, [exchange?.gifts, session?.user?.id]);
 
   type GiftGroup = Record<string, Gift[]>
   const groupedGifts = gifts?.reduce((acc, gift) => {
@@ -125,6 +132,9 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
 
   return (
     <div className="flex flex-col gap-2">
+      {!userRequestedGiftsInExchage && (
+        <CreateGift exchangeId={exchange.id} onGiftCreated={() => void refetch()} />
+      )}
       {Object.entries(groupedGifts).map(([requestorId, gifts]) => (
         <div key={requestorId} className="collapse collapse-arrow bg-base-200">
           <input type="checkbox" className="peer" /> 

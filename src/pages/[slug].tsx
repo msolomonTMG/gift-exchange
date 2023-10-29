@@ -3,15 +3,11 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { GiftList } from "~/components/Gift/List";
-import CreateGift from "~/components/Gift/Create";
 import AddParticipant from "~/components/Exchange/AddParticipants";
 import RemoveParticipant from "~/components/Exchange/RemoveParticipant";
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
 import { signIn } from "next-auth/react";
 
 export const ExchangePage: NextPage = () => {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const { data: exchange, isLoading, refetch } = api.exchange.getBySlug.useQuery({
@@ -20,15 +16,6 @@ export const ExchangePage: NextPage = () => {
   }, {
     enabled: slug !== undefined
   });
-
-  const userRequestedGiftsInExchage = useMemo(() => {
-    const gifts = exchange?.gifts.filter(gift => 
-      gift.requestorId === session?.user?.id
-    );
-    return gifts?.length ?? 0 > 0;
-  }, [exchange?.gifts, session?.user?.id]);
-
-  console.log({ exchange, userRequestedGiftsInExchage })
 
   // if the user has loaded, check if they are a participant
   if (status === "authenticated" && !exchange) {
@@ -101,13 +88,13 @@ export const ExchangePage: NextPage = () => {
           ))}
           <AddParticipant exchange={exchange} onParticipantAdded={() => void refetch()} />
         </div>
-        {!userRequestedGiftsInExchage && (
-          <CreateGift exchangeId={exchange.id} onGiftCreated={() => void refetch()} />
-        )}
-        <GiftList exchange={exchange} onGiftCreated={() => {
-          console.log('created was called')
-          void refetch();
-        }} />
+        <GiftList 
+          exchange={exchange} 
+          onGiftCreated={() => {
+            console.log('created was called')
+            void refetch();
+          }}
+        />
       </div>
       
     </div>
