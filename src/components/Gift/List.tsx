@@ -26,11 +26,11 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
   });
 
   const userRequestedGiftsInExchage = useMemo(() => {
-    const gifts = exchange?.gifts.filter(gift => 
+    const giftsMadeByUser = gifts?.filter(gift => 
       gift.requestorId === session?.user?.id
     );
-    return gifts?.length ?? 0 > 0;
-  }, [exchange?.gifts, session?.user?.id]);
+    return giftsMadeByUser?.length ?? 0 > 0;
+  }, [gifts, session?.user?.id]);
 
   type GiftGroup = Record<string, Gift[]>
   const groupedGifts = gifts?.reduce((acc, gift) => {

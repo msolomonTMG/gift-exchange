@@ -5,9 +5,10 @@ import { api } from "~/utils/api";
 import { GiftList } from "~/components/Gift/List";
 import AddParticipant from "~/components/Exchange/AddParticipants";
 import RemoveParticipant from "~/components/Exchange/RemoveParticipant";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export const ExchangePage: NextPage = () => {
+  const { status } = useSession();
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const { data: exchange, isLoading, refetch } = api.exchange.getBySlug.useQuery({
