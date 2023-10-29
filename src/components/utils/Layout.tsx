@@ -55,7 +55,16 @@ export const Layout: FC<Props> = ({ children }) => {
               </label>
             </div> 
             <div className="flex-1">
-              <Link className="btn btn-ghost normal-case text-xl" href="/">{APP_NAME}</Link>
+              <Link className="btn btn-ghost normal-case text-xl" href="/">
+                <Image
+                  src="/logo-transparent-bg.png"
+                  alt={APP_NAME}
+                  width={40}
+                  height={40}
+                  priority
+                />
+                {APP_NAME}
+              </Link>
             </div>
             <div className="items-center flex gap-2">
               <ul className="menu menu-horizontal hidden lg:flex">

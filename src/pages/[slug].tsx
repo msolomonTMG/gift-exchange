@@ -1,5 +1,6 @@
 import { type NextPage } from "next";
 import Image from "next/image";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { GiftList } from "~/components/Gift/List";
@@ -63,6 +64,11 @@ export const ExchangePage: NextPage = () => {
 
   return (
     <div className="pb-20">
+      <Head>
+        <title>{exchange.name}</title>
+        <meta name="description" content={exchange.description} />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <h1 className="mb-0">{exchange.name}</h1>
       <p className="mb-10">{exchange.description}</p>
       <div className="flex flex-col gap-8">

@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import { useMemo } from "react";
 import { type User, type Exchange } from "@prisma/client";
 import Image from "next/image";
+import { APP_NAME, APP_DESCRIPTION } from "~/constants";
 
 export default function Home() {
   const { data: exchanges } = api.exchange.getExchangesParticipating.useQuery({
@@ -88,8 +89,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Solly Exchange</title>
-        <meta name="description" content="Create and manage exchanges" />
+        <title>{APP_NAME}</title>
+        <meta name="description" content={APP_DESCRIPTION} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col gap-2">
