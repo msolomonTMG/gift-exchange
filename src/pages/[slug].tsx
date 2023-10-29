@@ -8,9 +8,10 @@ import AddParticipant from "~/components/Exchange/AddParticipants";
 import RemoveParticipant from "~/components/Exchange/RemoveParticipant";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
+import { signIn } from "next-auth/react";
 
 export const ExchangePage: NextPage = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const { data: exchange, isLoading, refetch } = api.exchange.getBySlug.useQuery({
@@ -28,6 +29,27 @@ export const ExchangePage: NextPage = () => {
   }, [exchange?.gifts, session?.user?.id]);
 
   console.log({ exchange, userRequestedGiftsInExchage })
+
+  // if the user has loaded, check if they are a participant
+  if (status === "authenticated" && !exchange) {
+    // if they are not, show a login message
+    return (
+      <div className="h-full w-full flex flex-col gap-2">
+        <h1 className="mb-0">Not a Participant</h1>
+        <p>You must be a participant of this exchange to view it</p>
+      </div>
+    )
+  }
+  // if the user is not logged in, show a login button
+  if (status === "unauthenticated") {
+    return (
+      <div className="h-full w-full flex flex-col gap-2">
+        <h1 className="mb-0">Not Logged In</h1>
+        <p>You must be logged in to view this exchange</p>
+        <button className="btn" onClick={() => void signIn('google')}>Login</button>
+      </div>
+    )
+  }
 
   if (!exchange && !isLoading) {
     return (
