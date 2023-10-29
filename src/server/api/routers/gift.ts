@@ -51,6 +51,22 @@ export const giftRouter = createTRPCRouter({
         },
       });
     }),
+  delete: protectedProcedure
+    .input(z.object({ 
+      id: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // the user calling delete must be the gift creator or an admin
+      const gift = await ctx.db.gift.findUniqueOrThrow({
+        where: { id: input.id },
+      });
+      if (gift.requestorId !== ctx.session.user.id && !ctx.session.user.isAdmin) {
+        throw new Error("You are not authorized to delete this gift");
+      }
+      return ctx.db.gift.delete({
+        where: { id: input.id },
+      });
+    }),
   getAllInExchange: protectedProcedure
     .input(z.object({
       exchangeId: z.number(),

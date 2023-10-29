@@ -9,6 +9,7 @@ import CreateGift from "~/components/Gift/Create";
 import AddPurchaser from "./Purchasers/Add";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import RemovePurchaser from "~/components/Gift/Purchasers/Remove";
+import { DeleteGift } from "~/components/Gift/Delete";
 
 type Props = {
   exchange: Exchange & {
@@ -139,7 +140,7 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                     <th>Description</th>
                     <th>Link</th>
                     {requestorId === session?.user?.id && (
-                      <th>Edit</th>
+                      <th>Actions</th>
                     )}
                     {requestorId !== session?.user?.id && (
                       <th>Purchasers</th>
@@ -182,13 +183,22 @@ export const GiftList: FC<Props> = ({ exchange, onGiftCreated }) => {
                       </td>
                       {requestorId === session?.user?.id && (
                         <td>
-                          <EditGift 
-                            gift={gift} 
-                            onGiftEdited={() => {
-                              void refetch();
-                              void onGiftCreated();
-                            }}
-                          />
+                          <div className="flex items-center gap-2">
+                            <EditGift 
+                              gift={gift} 
+                              onGiftEdited={() => {
+                                void refetch();
+                                void onGiftCreated();
+                              }}
+                            />
+                            <DeleteGift
+                              gift={gift}
+                              onGiftDeleted={() => {
+                                void refetch();
+                                void onGiftCreated();
+                              }}
+                            />
+                          </div>
                         </td>
                       )}
                       {requestorId !== session?.user?.id && (
