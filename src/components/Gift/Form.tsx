@@ -26,7 +26,10 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
   } = api.gift.create.useMutation({});
   const {
     mutateAsync: updateGift,
+    isLoading: updateIsLoading,
   } = api.gift.update.useMutation({});
+
+  const isLoading = createIsLoading || updateIsLoading;
 
   const {
     register,
@@ -139,8 +142,9 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       <button 
         className="btn btn-primary"
         type="submit"
+        disabled={isLoading}
       >
-        {createIsLoading && (
+        {isLoading && (
           <div className="loading loading-spinner" />
         )}
         Submit
