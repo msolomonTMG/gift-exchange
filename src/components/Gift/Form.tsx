@@ -1,4 +1,4 @@
-import { useEffect, type FC } from "react";
+import { type FC } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { api } from "~/utils/api";
 import { toast } from 'react-toastify';
@@ -8,7 +8,6 @@ import { type Gift } from "@prisma/client";
 type Inputs = {
   name: string;
   description: string;
-  image: string;
   url: string;
   price: number;
 }
@@ -37,7 +36,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
     defaultValues: {
       name: gift?.name,
       description: gift?.description,
-      image: gift?.image ?? "",
       url: gift?.url ?? "",
       price: gift?.price ?? 0,
     }
@@ -50,7 +48,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       const createdGift = await createGift({ 
         name: data.name,
         description: data.description,
-        image: data.image,
         url: data.url,
         price: parseFloat(data.price.toString()),
         exchangeId: exchangeId!,
@@ -65,7 +62,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       const editedGift = await updateGift({ 
         name: data.name,
         description: data.description,
-        image: data.image,
         url: data.url,
         price: parseFloat(data.price.toString()),
         id: gift!.id,
@@ -126,20 +122,6 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       </div>
       {/* errors will return when field validation fails  */}
       {errors.price && <span className="text-error">{errors.price.message}</span>}
-      <div className="w-full">
-        <label
-          className="label"
-          htmlFor="image"
-        >
-          Image
-        </label>
-        <input 
-          className="input input-bordered w-full"
-          {...register("image", { required: false })}
-        />
-      </div>
-      {/* errors will return when field validation fails  */}
-      {errors.image && <span className="text-error">{errors.image.message}</span>}
       <div className="w-full">
         <label
           className="label"

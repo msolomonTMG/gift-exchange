@@ -1,27 +1,53 @@
 import { z } from "zod";
 
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { JSDOM } from 'jsdom';
+
+async function fetchOGImage(url: string): Promise<string | null> {
+  try {
+    // Fetch the content of the URL
+    const response = await fetch(url);
+    const htmlContent = await response.text();
+
+    // Parse the HTML content using JSDOM
+    const dom = new JSDOM(htmlContent);
+    const document = dom.window.document;
+
+    // Extract the content of the 'og:image' meta tag
+    const ogImageTag = document.querySelector('meta[property="og:image"]');
+    if (ogImageTag) {
+      return ogImageTag.getAttribute('content');
+    } else {
+      throw new Error('og:image meta tag not found.');
+    }
+
+  } catch (error) {
+    console.error('Error fetching the og:image:', error);
+    return null;
+  }
+}
+
 
 export const giftRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ 
       name: z.string(),
       description: z.string(),
-      image: z.string().optional(),
       url: z.string().optional(),
       price: z.number().optional(),
       exchangeId: z.number(),
     }))
-    .mutation(({ input, ctx }) => {
-      console.log({ input })
+    .mutation(async ({ input, ctx }) => {
+      const image = await fetchOGImage(input.url ?? "");
       return ctx.db.gift.create({
         data: {
           name: input.name,
           description: input.description,
-          image: input.image,
+          image: image ?? null,
           url: input.url,
           price: input.price,
           exchangeId: input.exchangeId,
@@ -34,18 +60,17 @@ export const giftRouter = createTRPCRouter({
       id: z.number(),
       name: z.string().optional(),
       description: z.string().optional(),
-      image: z.string().optional(),
       url: z.string().optional(),
       price: z.number().optional(),
     }))
-    .mutation(({ input, ctx }) => {
-      console.log({ input })
+    .mutation(async ({ input, ctx }) => {
+      const image = await fetchOGImage(input.url ?? "");
       return ctx.db.gift.update({
         where: { id: input.id },
         data: {
           name: input.name,
           description: input.description,
-          image: input.image,
+          image: image ?? null,
           url: input.url,
           price: input.price,
         },
@@ -63,8 +88,25 @@ export const giftRouter = createTRPCRouter({
       if (gift.requestorId !== ctx.session.user.id && !ctx.session.user.isAdmin) {
         throw new Error("You are not authorized to delete this gift");
       }
+      // find any purchases for this gift and delete them
+      const purchase = await ctx.db.purchase.findUnique({
+        where: { giftId: input.id },
+      });
+      if (purchase) {
+        await ctx.db.purchase.delete({
+          where: { id: purchase.id },
+        });
+      }
       return ctx.db.gift.delete({
         where: { id: input.id },
+      });
+    }),
+  getAll: adminProcedure
+    .query(async ({ ctx }) => {
+      return await ctx.db.gift.findMany({
+        include: {
+          exchange: true,
+        }
       });
     }),
   getAllInExchange: protectedProcedure

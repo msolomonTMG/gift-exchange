@@ -22,6 +22,10 @@ const config = {
       {
         protocol: "https",
         hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
       }
     ]
   },

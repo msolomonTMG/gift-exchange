@@ -6,8 +6,11 @@ import { GiftList } from "~/components/Gift/List";
 import CreateGift from "~/components/Gift/Create";
 import AddParticipant from "~/components/Exchange/AddParticipants";
 import RemoveParticipant from "~/components/Exchange/RemoveParticipant";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 export const ExchangePage: NextPage = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const { data: exchange, isLoading, refetch } = api.exchange.getBySlug.useQuery({
@@ -16,6 +19,15 @@ export const ExchangePage: NextPage = () => {
   }, {
     enabled: slug !== undefined
   });
+
+  const userRequestedGiftsInExchage = useMemo(() => {
+    const gifts = exchange?.gifts.filter(gift => 
+      gift.requestorId === session?.user?.id
+    );
+    return gifts?.length ?? 0 > 0;
+  }, [exchange?.gifts, session?.user?.id]);
+
+  console.log({ exchange, userRequestedGiftsInExchage })
 
   if (!exchange && !isLoading) {
     return (
@@ -44,11 +56,6 @@ export const ExchangePage: NextPage = () => {
       <h1 className="mb-0">{exchange.name}</h1>
       <p className="mb-10">{exchange.description}</p>
       <div className="flex flex-col gap-8">
-        {/* <ExchangeForm 
-          submit="update" 
-          exchange={exchange}
-          onSubmit={() => void refetch()}
-        /> */}
         <div className="w-full flex items-center flex-wrap gap-2">
           {exchange?.participants.map(participant => (
             <div key={participant.id} className="badge badge-outline gap-2">
@@ -72,7 +79,9 @@ export const ExchangePage: NextPage = () => {
           ))}
           <AddParticipant exchange={exchange} onParticipantAdded={() => void refetch()} />
         </div>
-        <CreateGift exchangeId={exchange.id} onGiftCreated={() => void refetch()} />
+        {!userRequestedGiftsInExchage && (
+          <CreateGift exchangeId={exchange.id} onGiftCreated={() => void refetch()} />
+        )}
         <GiftList exchange={exchange} onGiftCreated={() => {
           console.log('created was called')
           void refetch();
