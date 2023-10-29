@@ -21,7 +21,6 @@
     "@trpc/react-query": "^10.37.1",
     "@trpc/server": "^10.37.1",
     "geist": "^1.0.0",
-    "jsdom": "^22.1.0",
     "next": "^13.5.4",
     "next-auth": "^4.23.0",
     "next-themes": "^0.2.1",

@@ -5,29 +5,46 @@ import {
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
-import { JSDOM } from 'jsdom';
 
-async function fetchOGImage(url: string): Promise<string | null> {
+async function fetchOGImage(url: string, timeout = 5000): Promise<string | null | undefined> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   try {
-    // Fetch the content of the URL
-    const response = await fetch(url);
-    const htmlContent = await response.text();
+    const response: Response = await fetch(url, { signal: controller.signal });
+    const reader = response.body?.getReader();
 
-    // Parse the HTML content using JSDOM
-    const dom = new JSDOM(htmlContent);
-    const document = dom.window.document;
+    const chunks: Uint8Array[] = [];
+    let found = false;
+    let ogImageContent: string | null | undefined = null;
 
-    // Extract the content of the 'og:image' meta tag
-    const ogImageTag = document.querySelector('meta[property="og:image"]');
-    if (ogImageTag) {
-      return ogImageTag.getAttribute('content');
-    } else {
-      throw new Error('og:image meta tag not found.');
+    if (reader) {
+      while (!found) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        if (value) {
+          chunks.push(value);
+          const joinedChunksArray: number[] = ([] as number[]).concat(...chunks.map(chunk => Array.from(chunk)));
+          const joinedChunks = new TextDecoder().decode(new Uint8Array(joinedChunksArray));
+          const ogImageMatch = /<meta[^>]*property=["']og:image["'][^>]*content=["'](.*?)["']/.exec(joinedChunks);
+
+          if (ogImageMatch) {
+            ogImageContent = ogImageMatch[1];
+            found = true;
+          }
+        }
+      }
     }
+
+    return ogImageContent;
 
   } catch (error) {
     console.error('Error fetching the og:image:', error);
     return null;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
