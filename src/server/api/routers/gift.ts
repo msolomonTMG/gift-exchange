@@ -43,7 +43,8 @@ export const giftRouter = createTRPCRouter({
       exchangeId: z.number(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const image = await fetchOgImageViaApi(input.url ?? "");
+      // const image = await fetchOgImageViaApi(input.url ?? "");
+      const image = null;
       return ctx.db.gift.create({
         data: {
           name: input.name,
