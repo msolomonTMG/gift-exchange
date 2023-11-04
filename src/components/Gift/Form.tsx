@@ -120,7 +120,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       e.preventDefault();
       void handleSubmit(onFormSubmission)();
     }}>
-      {(editImage && submit === "update") || submit === "create" && (
+      {((editImage && submit === "update") || submit === "create") && (
         <div className="w-full flex justify-center">
           <SingleImageDropzone
             width={200}
