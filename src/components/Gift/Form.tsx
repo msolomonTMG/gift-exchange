@@ -120,7 +120,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       e.preventDefault();
       void handleSubmit(onFormSubmission)();
     }}>
-      {editImage && submit === "update" && (
+      {(editImage && submit === "update") || submit === "create" && (
         <div className="w-full flex justify-center">
           <SingleImageDropzone
             width={200}
@@ -151,17 +151,19 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
           ></div>
         </div>
       )}
-      <div className="form-control">
-        <label className="label cursor-pointer">
-          <span className="label-text">Edit Image</span> 
-          <input 
-            type="checkbox" 
-            className="toggle"
-            onChange={() => setEditImage((prev) => !prev)}
-            checked={editImage}
-          />
-        </label>
-      </div>
+      {submit === "update" && (
+        <div className="form-control">
+          <label className="label cursor-pointer">
+            <span className="label-text">Edit Image</span> 
+            <input 
+              type="checkbox" 
+              className="toggle"
+              onChange={() => setEditImage((prev) => !prev)}
+              checked={editImage}
+            />
+          </label>
+        </div>
+      )}
       <div className="w-full">
         <label
           className="label"
