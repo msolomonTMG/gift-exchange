@@ -1,9 +1,12 @@
-import { type FC } from "react";
+import { useState, type FC } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { api } from "~/utils/api";
 import { toast } from 'react-toastify';
 import useIsDarkTheme from "~/hooks/useIsDarkTheme";
 import { type Gift } from "@prisma/client";
+import { SingleImageDropzone } from "~/components/Edgestore/SingleImageDropzone";
+import { useEdgeStore } from "~/lib/edgestore";
+import Image from "next/image";
 
 type Inputs = {
   name: string;
@@ -31,9 +34,15 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
 
   const isLoading = createIsLoading || updateIsLoading;
 
+  const [file, setFile] = useState<File>();
+  const { edgestore } = useEdgeStore();
+  const [progress, setProgress] = useState<number>(0);
+  const [editImage, setEditImage] = useState<boolean>(false);
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<Inputs>({
     defaultValues: {
@@ -48,10 +57,23 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
   
   const onFormSubmission: SubmitHandler<Inputs> = async (data) => {
     if (submit === "create") {
+      let imgUrl = "";
+      if (file) {
+        const imageUploadResponse = await edgestore.publicFiles.upload({
+          file,
+          onProgressChange: (progress) => {
+            // you can use this to show a progress bar
+            console.log(progress);
+            setProgress(progress);
+          },
+        });
+        imgUrl = imageUploadResponse.url;
+      }
       const createdGift = await createGift({ 
         name: data.name,
         description: data.description,
         url: data.url,
+        imgUrl,
         price: parseFloat(data.price.toString()),
         exchangeId: exchangeId!,
       });
@@ -62,10 +84,23 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       void onSubmit?.(createdGift);
     }
     if (submit === "update") {
+      let imgUrl = "";
+      if (editImage && file) {
+        const imageUploadResponse = await edgestore.publicFiles.upload({
+          file,
+          onProgressChange: (progress) => {
+            // you can use this to show a progress bar
+            console.log(progress);
+            setProgress(progress);
+          },
+        });
+        imgUrl = imageUploadResponse.url;
+      }
       const editedGift = await updateGift({ 
         name: data.name,
         description: data.description,
         url: data.url,
+        imgUrl: editImage ? imgUrl : gift!.image!,
         price: parseFloat(data.price.toString()),
         id: gift!.id,
       });
@@ -75,6 +110,9 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       (document.getElementById(`edit_gift_${gift!.id}_modal`) as HTMLDialogElement).close();
       void onSubmit?.(editedGift);
     }
+    setProgress(0);
+    setFile(undefined);
+    reset();
   };
 
   return (
@@ -82,6 +120,48 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
       e.preventDefault();
       void handleSubmit(onFormSubmission)();
     }}>
+      {editImage && submit === "update" && (
+        <div className="w-full flex justify-center">
+          <SingleImageDropzone
+            width={200}
+            height={200}
+            value={file}
+            onChange={(file) => {
+              setFile(file);
+            }}
+          />
+        </div>
+      )}
+      {!editImage && submit === "update" && (
+        <Image
+          src={gift?.image ?? ""}
+          alt={gift?.name ?? "Gift Image"}
+          width={200}
+          height={200}
+          className="rounded-md mx-auto"
+        />
+      )}
+      {progress > 0 && (
+        <div className="h-4 w-full border max-w-xs mx-auto rounded-lg overflow-hidden">
+          <div 
+            className="h-full bg-success transition-all duration-700 ease-linear" 
+            style={{
+              width: `${progress}%`,
+            }}
+          ></div>
+        </div>
+      )}
+      <div className="form-control">
+        <label className="label cursor-pointer">
+          <span className="label-text">Edit Image</span> 
+          <input 
+            type="checkbox" 
+            className="toggle"
+            onChange={() => setEditImage((prev) => !prev)}
+            checked={editImage}
+          />
+        </label>
+      </div>
       <div className="w-full">
         <label
           className="label"

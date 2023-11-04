@@ -3,8 +3,8 @@ import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
 import { ToastContainer } from 'react-toastify';
 import { Zilla_Slab } from "next/font/google";
-
 import { api } from "~/utils/api";
+import { EdgeStoreProvider } from "~/lib/edgestore";
 
 import "~/styles/globals.css";
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,11 +25,13 @@ const MyApp: AppType<{ session: Session | null }> = ({
     <div className={font.className}>
       <SessionProvider session={session}>
         <ThemeProvider>
-          <Layout>
-            <ToastContainer />
-            <Component {...pageProps} />
-            <div id="portal" />
-          </Layout>
+          <EdgeStoreProvider>
+            <Layout>
+              <ToastContainer />
+              <Component {...pageProps} />
+              <div id="portal" />
+            </Layout>
+          </EdgeStoreProvider>
         </ThemeProvider>
       </SessionProvider>
     </div>

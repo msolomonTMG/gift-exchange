@@ -7,32 +7,6 @@ import {
   protectedProcedure,
 } from "~/server/api/trpc";
 
-async function fetchOgImageViaApi (url: string): Promise<string | null | undefined> {
-  try {
-    const encodedUrl = encodeURIComponent(url);
-    const response = await fetch(`https://opengraph.io/api/1.1/site/${encodedUrl}?app_id=${env.OPENGRAPH_API_KEY}`);
-    interface OpenGraphData {
-      openGraph: {
-        title: string;
-        type: string;
-        image: {
-          url: string;
-          width: string;
-          height: string;
-        };
-      }
-    }
-    console.log({ response, encodedUrl, })
-    const json = await response.json() as OpenGraphData;
-    console.log({ json })
-    return json.openGraph.image.url;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
-
-
 export const giftRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ 
@@ -41,15 +15,14 @@ export const giftRouter = createTRPCRouter({
       url: z.string().optional(),
       price: z.number().optional(),
       exchangeId: z.number(),
+      imgUrl: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      // const image = await fetchOgImageViaApi(input.url ?? "");
-      const image = null;
       return ctx.db.gift.create({
         data: {
           name: input.name,
           description: input.description,
-          image: image ?? null,
+          image: input.imgUrl,
           url: input.url,
           price: input.price,
           exchangeId: input.exchangeId,
@@ -63,16 +36,16 @@ export const giftRouter = createTRPCRouter({
       name: z.string().optional(),
       description: z.string().optional(),
       url: z.string().optional(),
+      imgUrl: z.string().optional(),
       price: z.number().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const image = await fetchOgImageViaApi(input.url ?? "");
       return ctx.db.gift.update({
         where: { id: input.id },
         data: {
           name: input.name,
           description: input.description,
-          image: image ?? null,
+          image: input.imgUrl,
           url: input.url,
           price: input.price,
         },
@@ -141,7 +114,7 @@ export const giftRouter = createTRPCRouter({
       includePurchasers: z.boolean().optional().default(false),
     }))
     .query(async ({ input, ctx }) => {
-      return await ctx.db.purchase.findUniqueOrThrow({
+      return await ctx.db.purchase.findUnique({
         where: { giftId: input.giftId },
         include: {
           purchasers: input.includePurchasers,
