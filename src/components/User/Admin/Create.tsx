@@ -30,7 +30,7 @@ export const CreateUser: FC<Props> = ({ onUserCreated }) => {
     try {
       await createUser({ 
         name: data.name,
-        email: data.email,
+        email: data.email.trim(),
         isAdmin: data.isAdmin,
         image: getRandomAvatar(),
       });

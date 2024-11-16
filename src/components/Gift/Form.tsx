@@ -32,7 +32,8 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
     isLoading: updateIsLoading,
   } = api.gift.update.useMutation({});
 
-  const isLoading = createIsLoading || updateIsLoading;
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const isLoading = createIsLoading || updateIsLoading || isUploading;
 
   const [file, setFile] = useState<File>();
   const { edgestore } = useEdgeStore();
@@ -59,6 +60,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
     if (submit === "create") {
       let imgUrl = "";
       if (file) {
+        setIsUploading(true);
         const imageUploadResponse = await edgestore.publicFiles.upload({
           file,
           onProgressChange: (progress) => {
@@ -69,6 +71,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
         });
         imgUrl = imageUploadResponse.url;
       }
+      setIsUploading(false);
       const createdGift = await createGift({ 
         name: data.name,
         description: data.description,
@@ -86,6 +89,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
     if (submit === "update") {
       let imgUrl = "";
       if (editImage && file) {
+        setIsUploading(true);
         const imageUploadResponse = await edgestore.publicFiles.upload({
           file,
           onProgressChange: (progress) => {
@@ -96,6 +100,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
         });
         imgUrl = imageUploadResponse.url;
       }
+      setIsUploading(false);
       const editedGift = await updateGift({ 
         name: data.name,
         description: data.description,
@@ -141,7 +146,7 @@ export const GiftForm: FC<Props> = ({ submit, onSubmit, gift, exchangeId }) => {
           className="rounded-md mx-auto"
         />
       )}
-      {progress > 0 && (
+      {isUploading && (
         <div className="h-4 w-full border max-w-xs mx-auto rounded-lg overflow-hidden">
           <div 
             className="h-full bg-success transition-all duration-700 ease-linear" 
